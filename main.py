@@ -8,8 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Constants
-ADMIN_USER_ID = int(os.getenv('ADMIN_USER_ID', 0))  # 0 as default if not set
-TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+ADMIN_USER_ID = int(os.getenv('ADMIN_USER_ID', '0').strip())  # .strip() يحذف المسافاتTOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
 CHANNEL_TITLE = os.getenv('CHANNEL_TITLE', "عيادات الحروف")
 CHANNEL_LINK = os.getenv('CHANNEL_LINK', 'https://t.me/+W0lpVpFhNLxjNTM0')
