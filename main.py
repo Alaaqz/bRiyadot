@@ -175,3 +175,10 @@ if __name__ == "__main__":
             
     except Exception as e:
         logging.critical(f"Bot failed: {str(e)}")
+logging.info("Checking bot permissions before starting...")
+
+if check_bot_permissions():
+    logging.info("✅ البوت لديه الصلاحيات اللازمة للنشر في القناة.")
+else:
+    logging.critical("❌ البوت لا يملك الصلاحيات اللازمة! يرجى التحقق من إعدادات المشرفين.")
+    exit(1)  # إيقاف البوت إذا الصلاحيات غير كافية
