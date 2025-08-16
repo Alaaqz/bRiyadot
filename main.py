@@ -15,6 +15,20 @@ CHANNEL_LINK = os.getenv('CHANNEL_LINK', 'https://t.me/+W0lpVpFhNLxjNTM0')
 
 # Initialize bot
 bot = telebot.TeleBot(TOKEN)
+@bot.message_handler(commands=['perms'])
+def check_perms(message):
+    try:
+        chat_member = bot.get_chat_member(CHANNEL_ID, bot.get_me().id)
+        perms_info = [
+            f"الصلاحيات الحالية للبوت في {CHANNEL_TITLE}:",
+            f"- حالة البوت: {chat_member.status}",
+            f"- يمكنه إرسال رسائل: {getattr(chat_member, 'can_post_messages', False)}",
+            f"- يمكنه إرسال وسائط: {getattr(chat_member, 'can_send_media_messages', False)}"
+        ]
+        bot.reply_to(message, "\n".join(perms_info))
+    except Exception as e:
+        bot.reply_to(message, f"خطأ في التحقق: {str(e)}")
+
 
 # Configure logging
 logging.basicConfig(
@@ -27,56 +41,39 @@ logging.basicConfig(
 )
 
 def check_bot_permissions():
-    """Verify bot has admin permissions in channel"""
+    """Verify bot has required permissions"""
     try:
         chat_member = bot.get_chat_member(CHANNEL_ID, bot.get_me().id)
         
         # التحقق من أن البوت مسؤول
         if chat_member.status not in ['administrator', 'creator']:
-            logging.error("Bot is not admin in the channel!")
+            logging.error("Bot is not admin!")
             return False
-        
-        # إذا كان البوت مسؤولاً، تحقق من الصلاحيات المطلوبة
-        if chat_member.status == 'administrator':
-            required_perms = [
-                'can_post_messages',        # إرسال رسائل
-                'can_send_media_messages',  # إرسال وسائط
-                'can_invite_users'          # دعوة مستخدمين (اختياري)
-            ]
-            
-            # التحقق من كل صلاحية
-            for perm in required_perms:
-                if not getattr(chat_member, perm, False):
-                    logging.error(f"Bot lacks permission: {perm}")
-                    return False
-        
-        logging.info(f"Bot has {chat_member.status} permissions in {CHANNEL_TITLE}")
-        return True
-        
-    except Exception as e:
-        logging.error(f"Permission check failed: {str(e)}")
-        return False
-    """Verify bot has admin permissions in channel"""
-    try:
-        chat_member = bot.get_chat_member(CHANNEL_ID, bot.get_me().id)
-        if chat_member.status not in ['administrator', 'creator']:
-            logging.error("Bot is not admin in the channel!")
-            return False
-        
-        permissions = chat_member.get('permissions', {})
-        required_perms = ['can_send_messages', 'can_send_media_messages']
-        
-        if not all(permissions.get(perm, False) for perm in required_perms):
-            logging.error("Bot lacks required permissions!")
-            return False
-            
-        logging.info(f"Bot has {chat_member.status} permissions in {CHANNEL_TITLE}")
-        return True
-        
-    except Exception as e:
-        logging.error(f"Permission check failed: {str(e)}")
-        return False
 
+        # إذا كان مسؤولاً، تحقق من الصلاحيات
+        required_perms = {
+            'can_post_messages': "إرسال الرسائل",
+            'can_send_media_messages': "إرسال الوسائط",
+            'can_invite_users': "دعوة مستخدمين"  # اختياري
+        }
+
+        missing_perms = []
+        for perm, name in required_perms.items():
+            if not getattr(chat_member, perm, False):
+                missing_perms.append(name)
+
+        if missing_perms:
+            logging.error(f"Missing permissions: {', '.join(missing_perms)}")
+            return False
+
+        logging.info("Bot has all required permissions!")
+        return True
+
+    except Exception as e:
+        
+        logging.error(f"Permission check failed: {str(e)}")
+        return False
+    
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     """Enhanced welcome message with channel info"""
