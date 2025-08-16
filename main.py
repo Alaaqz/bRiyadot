@@ -35,31 +35,24 @@ def is_admin(user_id: int) -> bool:
     """Check if user is admin"""
     return user_id == ADMIN_USER_ID
 
-def check_bot_permissions() -> bool:
-    """Verify bot has required channel permissions"""
+def check_bot_permissions():
     try:
         chat_member = bot.get_chat_member(CHANNEL_ID, bot.get_me().id)
         
-        if chat_member.status not in ["administrator", "creator"]:
-            logging.error("Bot is not admin in channel!")
+        if chat_member.status not in ['administrator', 'creator']:
+            logging.error("Bot is not admin!")
             return False
-
-        required_perms = {
-            "can_post_messages": "Post Messages",
-            "can_send_media_messages": "Send Media"
-        }
-
-        for perm, name in required_perms.items():
-            if not getattr(chat_member, perm, False):
-                logging.error(f"Missing permission: {name}")
-                return False
-
+            
+        if not chat_member.can_post_messages:
+            logging.error("Bot can't post messages!")
+            return False
+            
+        logging.info(f"Bot has required permissions (Status: {chat_member.status})")
         return True
-
+        
     except Exception as e:
         logging.error(f"Permission check failed: {str(e)}")
         return False
-
 @bot.message_handler(commands=["start", "help"])
 def send_welcome(message):
     """Send welcome message with instructions"""
