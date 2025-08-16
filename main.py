@@ -30,6 +30,35 @@ def check_bot_permissions():
     """Verify bot has admin permissions in channel"""
     try:
         chat_member = bot.get_chat_member(CHANNEL_ID, bot.get_me().id)
+        
+        # التحقق من أن البوت مسؤول
+        if chat_member.status not in ['administrator', 'creator']:
+            logging.error("Bot is not admin in the channel!")
+            return False
+        
+        # إذا كان البوت مسؤولاً، تحقق من الصلاحيات المطلوبة
+        if chat_member.status == 'administrator':
+            required_perms = [
+                'can_post_messages',        # إرسال رسائل
+                'can_send_media_messages',  # إرسال وسائط
+                'can_invite_users'          # دعوة مستخدمين (اختياري)
+            ]
+            
+            # التحقق من كل صلاحية
+            for perm in required_perms:
+                if not getattr(chat_member, perm, False):
+                    logging.error(f"Bot lacks permission: {perm}")
+                    return False
+        
+        logging.info(f"Bot has {chat_member.status} permissions in {CHANNEL_TITLE}")
+        return True
+        
+    except Exception as e:
+        logging.error(f"Permission check failed: {str(e)}")
+        return False
+    """Verify bot has admin permissions in channel"""
+    try:
+        chat_member = bot.get_chat_member(CHANNEL_ID, bot.get_me().id)
         if chat_member.status not in ['administrator', 'creator']:
             logging.error("Bot is not admin in the channel!")
             return False
