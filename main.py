@@ -1,17 +1,22 @@
+import os
 import telebot
 from telebot import types
 import logging
-import os
 from dotenv import load_dotenv
-from config import ADMIN_USER_ID
+
 # Load environment variables
 load_dotenv()
 
-# Constants
-ADMIN_USER_ID = int(os.getenv('ADMIN_USER_ID', '0').strip())  # .strip() يحذف المسافاتTOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
-CHANNEL_TITLE = os.getenv('CHANNEL_TITLE', "عيادات الحروف")
-CHANNEL_LINK = os.getenv('CHANNEL_LINK', 'https://t.me/+W0lpVpFhNLxjNTM0')
+# قراءة المتغيرات من البيئة
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHANNEL_ID = int(os.getenv("CHANNEL_ID", "0"))
+ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "0").strip())
+CHANNEL_TITLE = os.getenv("CHANNEL_TITLE", "عيادات الحروف")
+CHANNEL_LINK = os.getenv("CHANNEL_LINK", "https://t.me/+W0lpVpFhNLxjNTM0")
+
+# تأكيد وجود التوكن
+if not TOKEN:
+    raise ValueError("❌ TELEGRAM_BOT_TOKEN غير موجود في Environment Variables!")
 
 # Initialize bot
 bot = telebot.TeleBot(TOKEN)
@@ -19,9 +24,9 @@ bot = telebot.TeleBot(TOKEN)
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('bot.log'),
+        logging.FileHandler("bot.log"),
         logging.StreamHandler()
     ]
 )
@@ -35,13 +40,13 @@ def check_bot_permissions() -> bool:
     try:
         chat_member = bot.get_chat_member(CHANNEL_ID, bot.get_me().id)
         
-        if chat_member.status not in ['administrator', 'creator']:
+        if chat_member.status not in ["administrator", "creator"]:
             logging.error("Bot is not admin in channel!")
             return False
 
         required_perms = {
-            'can_post_messages': "Post Messages",
-            'can_send_media_messages': "Send Media"
+            "can_post_messages": "Post Messages",
+            "can_send_media_messages": "Send Media"
         }
 
         for perm, name in required_perms.items():
@@ -55,7 +60,7 @@ def check_bot_permissions() -> bool:
         logging.error(f"Permission check failed: {str(e)}")
         return False
 
-@bot.message_handler(commands=['start', 'help'])
+@bot.message_handler(commands=["start", "help"])
 def send_welcome(message):
     """Send welcome message with instructions"""
     welcome_msg = f"""
@@ -75,18 +80,18 @@ def send_welcome(message):
     except Exception as e:
         logging.error(f"Error sending welcome: {str(e)}")
 
-@bot.message_handler(commands=['status'])
+@bot.message_handler(commands=["status"])
 def bot_status(message):
     """Check bot status"""
     status_msg = f"""
     ✅ حالة البوت:
     - القناة: {CHANNEL_TITLE}
     - المعرف: {CHANNEL_ID}
-    - الصلاحيات: {'✅ جاهز' if check_bot_permissions() else '❌ تحتاج إصلاح'}
+    - الصلاحيات: {"✅ جاهز" if check_bot_permissions() else "❌ تحتاج إصلاح"}
     """
     bot.reply_to(message, status_msg.strip())
 
-@bot.message_handler(commands=['perms'])
+@bot.message_handler(commands=["perms"])
 def check_perms(message):
     """Check bot permissions in channel"""
     if not is_admin(message.from_user.id):
@@ -104,7 +109,7 @@ def check_perms(message):
     except Exception as e:
         bot.reply_to(message, f"خطأ في التحقق: {str(e)}")
 
-@bot.message_handler(content_types=['voice'])
+@bot.message_handler(content_types=["voice"])
 def handle_voice(message):
     """Process and forward voice messages"""
     if not check_bot_permissions():
@@ -153,14 +158,14 @@ def handle_voice(message):
 @bot.message_handler(func=lambda m: True)
 def handle_other_messages(message):
     """Handle all other messages"""
-    if message.content_type == 'text':
+    if message.content_type == "text":
         bot.reply_to(
             message,
             "📢 يرجى إرسال تسجيل صوتي فقط\n"
             "استخدمي /start لمعرفة التعليمات"
         )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         logging.info(f"Starting bot for {CHANNEL_TITLE} (ID: {CHANNEL_ID})")
         
