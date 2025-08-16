@@ -3,7 +3,7 @@ from telebot import types
 import logging
 import os
 from dotenv import load_dotenv
-
+from config import ADMIN_USER_ID
 # Load environment variables
 load_dotenv()
 
